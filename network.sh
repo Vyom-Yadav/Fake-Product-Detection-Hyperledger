@@ -76,7 +76,7 @@ function clean() {
   ls | sudo xargs rm -rf
   popd || exit
 
-  rm -rf ./organizations/peerOrganizations ./organizations/ordererOrganizations
+  rm -rf ./organizations/peerOrganizations ./organizations/ordererOrganizations ./channel-artifacts/
 
   docker compose -f compose/compose-net.yaml -f compose/compose-ca.yaml down --volumes --remove-orphans
 }

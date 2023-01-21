@@ -9,7 +9,8 @@ CHANNEL_NAME="supplychain"
 createChannelGenesisBlock() {
   infoln "Generating channel genesis block '${CHANNEL_NAME}.block'"
   set -x
-  configtxgen -configPath "$FABRIC_CFG_PATH" -profile SupplyChainApplicationGenesis -outputBlock "${PWD}"/channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
+  CFG_PATH="./configtx"
+  configtxgen -configPath "$CFG_PATH" -profile SupplyChainApplicationGenesis -outputBlock "${PWD}"/channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
   res=$?
   { set +x; } 2>/dev/null
   verifyResult $res "Failed to generate channel configuration transaction..."s
@@ -43,28 +44,27 @@ joinChannel() {
 
   cat log.txt
 }
+createChannelGenesisBlock
 
-#FABRIC_CFG_PATH=${PWD}/configtx/
-#createChannelGenesisBlock
-
-FABRIC_CFG_PATH=${PWD}/config/
+export FABRIC_CFG_PATH=${PWD}/config/
 BLOCKFILE="${PWD}/channel-artifacts/${CHANNEL_NAME}.block"
 
 ### Create channel
-#infoln "Creating channel ${CHANNEL_NAME}"
-#createChannel
-#successln "Channel '$CHANNEL_NAME' created"
+infoln "Creating channel ${CHANNEL_NAME}"
+createChannel
+successln "Channel '$CHANNEL_NAME' created"
 
 ### Join all the peers to the channel
 infoln "Joining manufacturer peer to the channel..."
 joinChannel "Manufacturer"
 
-#infoln "Joining retailer peer to the channel..."
-#joinChannel "Retailer"
-#
-#infoln "Joining customer peer to the channel..."
-#joinChannel "Customer"
-#
+infoln "Joining retailer peer to the channel..."
+joinChannel "Retailer"
+
+infoln "Joining customer peer to the channel..."
+joinChannel "Customer"
+
+# No need for Anchor peers when only a single peer is there.
 ### Set the anchor peers for each org in the channel
 #infoln "Setting anchor peer for manufacturer..."
 #setAnchorPeer "Manufacturer"
