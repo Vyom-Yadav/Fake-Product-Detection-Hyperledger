@@ -1,0 +1,16 @@
+/channel-artifacts/*.tx
+/channel-artifacts/*.block
+/ledgers
+/ledgers-backup
+/channel-artifacts/*.json
+/org3-artifacts/crypto-config/*
+organizations/fabric-ca/ordererOrg/*
+organizations/fabric-ca/customerOrg/*
+organizations/fabric-ca/retailerOrg/*
+organizations/fabric-ca/manufacturerOrg/*
+organizations/ordererOrganizations
+organizations/peerOrganizations
+system-genesis-block/*
+*.tar.gz
+log.txt
+.idea
