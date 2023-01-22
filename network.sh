@@ -84,4 +84,9 @@ function clean() {
 function createChannel() {
   ./scripts/createChannel.sh
 }
+
+function deployCC() {
+  ./scripts/deployCC.sh
+}
+
 $1
