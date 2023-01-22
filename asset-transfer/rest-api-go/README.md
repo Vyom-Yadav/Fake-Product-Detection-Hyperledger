@@ -1,4 +1,4 @@
-# Asset Transfer REST API Sample
+# Asset Transfer REST API
 
 This is a simple REST server written in golang with endpoints for chaincode invoke and query.
 
@@ -22,8 +22,6 @@ curl --request POST \
   --url http://localhost:3000/invoke \
   --header 'content-type: application/x-www-form-urlencoded' \
   --data = \
-  --data channelid=supplychain \
-  --data chaincodeid=product-chaincode \
   --data function=TransferAssetToRetailer \
   --data args=product1 \
   --data args='Jain Medicos' \
@@ -33,5 +31,5 @@ Sample chaincode query for getting all asset details.
 
 ``` sh
 curl --request GET \
-  --url 'http://localhost:3000/query?channelid=supplychain&chaincodeid=product-chaincode&function=GetAllAssets'
+  --url 'http://localhost:3000/query?function=GetAllAssets'
 ```
