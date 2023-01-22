@@ -6,6 +6,15 @@
 SOCK="${DOCKER_HOST:-/var/run/docker.sock}"
 export DOCKER_SOCK="${SOCK##unix://}"
 
+function install() {
+  up
+  sleep 5
+  createChannel
+  sleep 5
+  deployCC
+  sleep 5
+}
+
 function up() {
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
@@ -59,6 +68,14 @@ function createOrgs() {
   ./organizations/ccp-generate.sh
 }
 
+function createChannel() {
+  ./scripts/createChannel.sh
+}
+
+function deployCC() {
+  ./scripts/deployCC.sh
+}
+
 function clean() {
   pushd ./organizations/fabric-ca/ordererOrg || exit
   ls | sudo xargs rm -rf
@@ -82,12 +99,9 @@ function clean() {
   docker compose -f compose/compose-net.yaml -f compose/compose-ca.yaml down --volumes --remove-orphans
 }
 
-function createChannel() {
-  ./scripts/createChannel.sh
-}
-
-function deployCC() {
-  ./scripts/deployCC.sh
-}
+if [ "$1" == "--help" ]; then
+  infoln "Usage: ./network.sh install|clean"
+  exit 0
+fi
 
 $1

@@ -5,7 +5,7 @@ This is a simple REST server written in golang with endpoints for chaincode invo
   
 ## Usage
 
-- Setup fabric test network and deploy the asset transfer chaincode by [following these instructions]().
+- Setup fabric test network and deploy the asset transfer chaincode by [following these instructions](https://github.com/Vyom-Yadav/Fake-Product-Detection-Hyperledger/blob/master/README.md).
 
 - cd into rest-api-go directory
 - Download required dependencies using `go mod download`
