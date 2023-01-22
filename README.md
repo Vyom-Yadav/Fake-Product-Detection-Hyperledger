@@ -121,4 +121,27 @@ of ownership of product. As soon as someone buys a product, the owner has to tra
 | TransferAssetToConsumer | productID `string` |                       |                          |
 | GetAllAssets            |                    |                       |                          |
 
+## Network Structure
 
+The network structure is quite simple, it includes
+
+- One Orderer
+- One Peer for each organization
+- One Certificate Authority for each organization
+- One User and Admin per organization
+- One Channel
+- One Chaincode
+
+The fabric network can be configured for HA but that is not the focus of this project. You can refer to https://github.com/Vyom-Yadav/Fake-Product-Detection-Blockchain for seeing HA setup (just for HA setup).
+
+## Contributing to this project
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
+
+Be Respectful and Kind to each other. We are all here to learn and grow together.
+
+# Give a ⭐️ if you like this project!
