@@ -5,7 +5,9 @@
 . scripts/ccutils.sh
 . scripts/utils.sh
 
-CHANNEL_NAME="supply-chain"
+export FABRIC_CFG_PATH=./config/
+
+CHANNEL_NAME="supplychain"
 CC_RUNTIME_LANGUAGE="golang"
 CC_VERSION="1"
 CC_SRC_PATH="./asset-transfer/product-chaincode/"

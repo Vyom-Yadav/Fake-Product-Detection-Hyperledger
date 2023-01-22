@@ -11,20 +11,24 @@ function installChaincode() {
   fi
   { set +x; } 2>/dev/null
   cat log.txt
-  verifyResult $res "Chaincode installation on peer0.${ORG} has failed"
-  successln "Chaincode is installed on peer0.${ORG}"
+
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
+  verifyResult $res "Chaincode installation on peer0.${ORG_LOWER} has failed"
+  successln "Chaincode is installed on peer0.${ORG_LOWER}"
 }
 
 function queryInstalled() {
   ORG=$1
   setGlobals "$ORG"
   set -x
-  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^${PACKAGE_ID}$ >&log.txt
+  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^"${PACKAGE_ID}"$ >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  verifyResult $res "Query installed on peer0.${ORG} has failed"
-  successln "Query installed successful on peer0.${ORG} on channel"
+
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
+  verifyResult $res "Query installed on peer0.${ORG_LOWER} has failed"
+  successln "Query installed successful on peer0.${ORG_LOWER} on channel"
 }
 
 function approveForMyOrg() {
@@ -39,14 +43,17 @@ function approveForMyOrg() {
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  verifyResult $res "Chaincode definition approved on peer0.${ORG} on channel '$CHANNEL_NAME' failed"
-  successln "Chaincode definition approved on peer0.${ORG} on channel '$CHANNEL_NAME'"
+
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
+  verifyResult $res "Chaincode definition approved on peer0.${ORG_LOWER} on channel '$CHANNEL_NAME' failed"
+  successln "Chaincode definition approved on peer0.${ORG_LOWER} on channel '$CHANNEL_NAME'"
 }
 
 function checkCommitReadiness() {
   ORG=$1
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
   setGlobals "$ORG"
-  infoln "Checking the commit readiness of the chaincode definition on peer0.${ORG} on channel '$CHANNEL_NAME'..."
+  infoln "Checking the commit readiness of the chaincode definition on peer0.${ORG_LOWER} on channel '$CHANNEL_NAME'..."
   set -x
   peer lifecycle chaincode checkcommitreadiness --channelID "$CHANNEL_NAME" \
    --name "${CC_NAME}" --version "${CC_VERSION}" \
@@ -56,6 +63,7 @@ function checkCommitReadiness() {
 }
 
 function commitChaincodeDefinition() {
+  infoln "Committing chaincode definition on channel '$CHANNEL_NAME'..."
   peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.orderer.supplychain.com \
     --tls "$CORE_PEER_TLS_ENABLED" --cafile "$ORDERER_CA" \
     --channelID "$CHANNEL_NAME" --name "${CC_NAME}" \
@@ -68,11 +76,14 @@ function commitChaincodeDefinition() {
 function queryCommitted() {
   ORG=$1
   setGlobals "$ORG"
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
+  infoln "Querying chaincode definition on peer0.${ORG_LOWER} on channel '$CHANNEL_NAME'..."
   peer lifecycle chaincode querycommitted --channelID "$CHANNEL_NAME" --name "${CC_NAME}"
 }
 
 function chaincodeInvokeInit() {
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.orderer.com \
+  infoln "Sending invoke transaction on channel '$CHANNEL_NAME'..."
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.orderer.supplychain.com \
     --tls "$CORE_PEER_TLS_ENABLED" --cafile "$ORDERER_CA" -C "$CHANNEL_NAME" -n "${CC_NAME}" \
     --peerAddresses localhost:7051 --tlsRootCertFiles "$PEER0_MANUFACTURER_CA" \
     --peerAddresses localhost:9051 --tlsRootCertFiles "$PEER0_RETAILER_CA" \
@@ -83,6 +94,8 @@ function chaincodeInvokeInit() {
 function chaincodeQuery() {
   ORG=$1
   setGlobals "$ORG"
+  ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
+  infoln "Querying chaincode on peer0.${ORG_LOWER} on channel '$CHANNEL_NAME'..."
   # Query all assets
   peer chaincode query -C "$CHANNEL_NAME" -n "${CC_NAME}" -c '{"Args":["GetAllAssets"]}'
 }
