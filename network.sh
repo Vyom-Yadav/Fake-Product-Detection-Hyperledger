@@ -93,7 +93,7 @@ function clean() {
   ls | sudo xargs rm -rf
   popd || exit
 
-  rm -rf ./organizations/peerOrganizations ./organizations/ordererOrganizations ./channel-artifacts/
+  rm -rf ./organizations/peerOrganizations ./organizations/ordererOrganizations ./channel-artifacts/ ./qr-codes/*
   rm ./log.txt ./product-chaincode.tar.gz
 
   docker compose -f compose/compose-net.yaml -f compose/compose-ca.yaml down --volumes --remove-orphans
