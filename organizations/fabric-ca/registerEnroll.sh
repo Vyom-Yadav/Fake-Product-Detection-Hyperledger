@@ -49,7 +49,8 @@ function createManufacturerOrg() {
 
   infoln "Registering user"
   set -x
-  fabric-ca-client register --caname ca-manufacturer --id.name user1 --id.secret user1pw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/manufacturerOrg/ca-cert.pem"
+  fabric-ca-client register --caname ca-manufacturer --id.name user1 --id.secret user1pw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/manufacturerOrg/ca-cert.pem" \
+   --id.attrs 'user.name=Apollo Pharmacy:ecert','user.address=DSS 167 sector 25 Panchkula-Haryana-India:ecert'
   { set +x; } 2>/dev/null
 
   infoln "Registering the org admin"
@@ -135,7 +136,8 @@ function createRetailerOrg() {
 
   infoln "Registering user"
   set -x
-  fabric-ca-client register --caname ca-retailer --id.name user1 --id.secret user1pw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/retailerOrg/ca-cert.pem"
+  fabric-ca-client register --caname ca-retailer --id.name user1 --id.secret user1pw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/retailerOrg/ca-cert.pem" \
+   --id.attrs 'user.name=Jain Medicos:ecert','user.address=DSS 11 sector 20 Panchkula-Haryana-India:ecert'
   { set +x; } 2>/dev/null
 
   infoln "Registering the org admin"

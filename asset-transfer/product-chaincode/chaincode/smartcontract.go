@@ -3,6 +3,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -132,24 +133,24 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if mspId == "ManufacturerMSP" {
-		exists, err := s.AssetExists(ctx, productID)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return fmt.Errorf("the asset %s does not exist", productID)
-		}
-
 		asset, err := s.ReadAsset(ctx, productID)
 		if err != nil {
 			return err
 		}
-		asset.ProductType = productType
-		assetJSON, err := json.Marshal(asset)
+		isOwnerOfAsset, err := isOwnerOfAsset(asset, clientIdentity)
 		if err != nil {
 			return err
 		}
-		return ctx.GetStub().PutState(productID, assetJSON)
+		if isOwnerOfAsset {
+			asset.ProductType = productType
+			assetJSON, err := json.Marshal(asset)
+			if err != nil {
+				return err
+			}
+			return ctx.GetStub().PutState(productID, assetJSON)
+		} else {
+			return fmt.Errorf("only owner of the asset can update the asset")
+		}
 	} else {
 		return fmt.Errorf("only Manufacturer can update product")
 	}
@@ -163,15 +164,22 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if mspId == "ManufacturerMSP" {
-		exists, err := s.AssetExists(ctx, productID)
+		asset, err := s.ReadAsset(ctx, productID)
 		if err != nil {
 			return err
 		}
-		if !exists {
-			return fmt.Errorf("the asset %s does not exist", productID)
+		isOwnerOfAsset, err := isOwnerOfAsset(asset, clientIdentity)
+		if err != nil {
+			return err
 		}
-
-		return ctx.GetStub().DelState(productID)
+		if isOwnerOfAsset {
+			if err != nil {
+				return err
+			}
+			return ctx.GetStub().DelState(productID)
+		} else {
+			return fmt.Errorf("only owner of the asset can delete the asset")
+		}
 	} else {
 		return fmt.Errorf("only Manufacturer can delete product")
 	}
@@ -199,24 +207,31 @@ func (s *SmartContract) TransferAssetToRetailer(ctx contractapi.TransactionConte
 		if err != nil {
 			return "", err
 		}
-
-		oldOwner := asset.Owner
-		asset.Owner = Owner{OwnerName: newOwnerName, OwnerAddress: newOwnerAddress}
-		asset.WithRetailer = true
-		asset.WithManufacturer = false
-		asset.WithConsumer = false
-
-		assetJSON, err := json.Marshal(asset)
+		isOwnerOfAsset, err := isOwnerOfAsset(asset, clientIdentity)
 		if err != nil {
 			return "", err
 		}
+		if isOwnerOfAsset {
+			oldOwner := asset.Owner
+			asset.Owner = Owner{OwnerName: newOwnerName, OwnerAddress: newOwnerAddress}
+			asset.WithRetailer = true
+			asset.WithManufacturer = false
+			asset.WithConsumer = false
 
-		err = ctx.GetStub().PutState(productID, assetJSON)
-		if err != nil {
-			return "", err
+			assetJSON, err := json.Marshal(asset)
+			if err != nil {
+				return "", err
+			}
+
+			err = ctx.GetStub().PutState(productID, assetJSON)
+			if err != nil {
+				return "", err
+			}
+
+			return "Name: " + oldOwner.OwnerName + " Address: " + oldOwner.OwnerAddress, nil
+		} else {
+			return "", fmt.Errorf("only owner of the asset can transfer the asset")
 		}
-
-		return "Name: " + oldOwner.OwnerName + " Address: " + oldOwner.OwnerAddress, nil
 	} else {
 		return "", fmt.Errorf("only Manufacturer can transfer product to retailer")
 	}
@@ -234,24 +249,31 @@ func (s *SmartContract) TransferAssetToConsumer(ctx contractapi.TransactionConte
 		if err != nil {
 			return "", err
 		}
-
-		oldOwner := asset.Owner
-		asset.Owner = Owner{OwnerName: "Consumer", OwnerAddress: "Consumer"}
-		asset.WithRetailer = false
-		asset.WithManufacturer = false
-		asset.WithConsumer = true
-
-		assetJSON, err := json.Marshal(asset)
+		isOwnerOfAsset, err := isOwnerOfAsset(asset, clientIdentity)
 		if err != nil {
 			return "", err
 		}
+		if isOwnerOfAsset {
+			oldOwner := asset.Owner
+			asset.Owner = Owner{OwnerName: "Consumer", OwnerAddress: "Consumer"}
+			asset.WithRetailer = false
+			asset.WithManufacturer = false
+			asset.WithConsumer = true
 
-		err = ctx.GetStub().PutState(productID, assetJSON)
-		if err != nil {
-			return "", err
+			assetJSON, err := json.Marshal(asset)
+			if err != nil {
+				return "", err
+			}
+
+			err = ctx.GetStub().PutState(productID, assetJSON)
+			if err != nil {
+				return "", err
+			}
+
+			return "Name: " + oldOwner.OwnerName + " Address: " + oldOwner.OwnerAddress, nil
+		} else {
+			return "", fmt.Errorf("only owner of the asset can transfer the asset")
 		}
-
-		return "Name: " + oldOwner.OwnerName + " Address: " + oldOwner.OwnerAddress, nil
 	} else {
 		return "", fmt.Errorf("only Manufacturer and Retailer can transfer product to consumer")
 	}
@@ -283,4 +305,37 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 	}
 
 	return assets, nil
+}
+
+// isOwnerOfAsset returns true when clientIdentity is the owner of asset
+func isOwnerOfAsset(asset *Product, clientIdentity cid.ClientIdentity) (bool, error) {
+	owner := asset.Owner
+	ownerName, found, err := clientIdentity.GetAttributeValue("user.name")
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, fmt.Errorf("user.name attribute not found, name of the owner is required")
+	}
+
+	ownerAddress, found, err := clientIdentity.GetAttributeValue("user.address")
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, fmt.Errorf("user.address attribute not found, name of the owner is required")
+	}
+	mspId, err := clientIdentity.GetMSPID()
+	if err != nil {
+		return false, err
+	}
+	withCorrectMSP := false
+	if mspId == "ManufacturerMSP" && asset.WithManufacturer {
+		withCorrectMSP = true
+	} else if mspId == "RetailerMSP" && asset.WithRetailer {
+		withCorrectMSP = true
+	} else if mspId == "ConsumerMSP" && asset.WithConsumer {
+		withCorrectMSP = true
+	}
+	return owner.OwnerName == ownerName && owner.OwnerAddress == ownerAddress && withCorrectMSP, nil
 }
